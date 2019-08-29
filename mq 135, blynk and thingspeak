@@ -1,0 +1,72 @@
+#include "MQ135.h"
+
+#include<ThingSpeak.h>
+#include "Wire.h"
+#include <ESP8266WiFi.h>
+#define BLYNK_PRINT Serial
+#include <BlynkSimpleEsp8266.h>
+
+MQ135 gasSensor = MQ135(A0);
+
+char auth[] = "T-hYUmbPhVsgzhb0WcH5pX7hu79nDf-D";
+char sid[] = "Pole Star";
+char pass[] = "atix7014";
+
+BlynkTimer timer;
+void myTimerEvent()
+{
+  Blynk.virtualWrite(V0, millis() / 1000);
+}
+
+String apiKey="Z59FB6YV9ZLZOBJC";
+const int sensorPin = A0;
+
+
+const char* ssid     = "Pole Star";
+const char* password = "atix7014";
+const char* server = "api.thingspeak.com";
+
+WiFiClient client;
+
+void setup()
+{
+  Serial.begin(921600);
+
+  Blynk.begin(auth, sid, pass);
+                 
+   pinMode(A0, INPUT); 
+   pinMode(4,OUTPUT);      
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+
+WiFi.begin(ssid, password);
+
+
+while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  timer.setInterval(1000L, myTimerEvent);
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address of NODEMCU= ");
+  Serial.println(WiFi.localIP()); // idi NodeMCU IP address.
+  ThingSpeak.begin(client);
+}
+void loop()
+{
+  Blynk.run();
+   timer.run();
+  digitalWrite(4,HIGH);
+  //digitalWrite(5,LOW);
+  
+  float ppm = gasSensor.getPPM();
+ 
+  Serial.print("Quality : ");
+  Serial.println(ppm);
+  ThingSpeak.writeField(848759,1,ppm,"Z59FB6YV9ZLZOBJC"); //Write data to channel
+   delay(1000);
+  }      
